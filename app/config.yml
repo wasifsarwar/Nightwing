@@ -1,0 +1,8 @@
+bigip:
+  username: USERNAME
+  authenticationpassphrase: AUTHENTICATIONPASSPHRASE
+  privacypassphrase: PRIVACYPASSPHRASE
+
+datadog:
+  datadogappkey: DATADOGAPPKEY
+  datadogapikey: DATADOGAPIKEY

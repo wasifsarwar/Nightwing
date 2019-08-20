@@ -1,0 +1,1268 @@
+# BIG-IP Collects system information (CPU, Ram, global throughput) from BIG-IPs
+# Currently has counters for CPU, Mem, Failover status, adding trunks
+f5bigipsmall: # Our name for the module. This will be referenced in the scrape job.
+  # Walk defines what OIDs we do an snmp walk of.
+  walk:
+  # Memory items?
+  - 1.3.6.1.4.1.3375.2.1.1.2.1 # sysGlobalStat
+  - 1.3.6.1.4.1.3375.2.1.7.4 # sysMultiHost
+  - 1.3.6.1.4.1.3375.2.1.1.2.20 # sysGlobalHost
+  - 1.3.6.1.4.1.3375.2.1.1.2.21 # sysGlobalTmmStat
+  - 1.3.6.1.4.1.3375.2.1.8.2.3.1 # sysStatMemory
+  # Failover status
+  - 1.3.6.1.4.1.3375.2.1.14.3 # sysCmFailoverStatus
+  # Sync Status
+  - 1.3.6.1.4.1.3375.2.1.14 # sysCM
+  # sysTrunks
+  - 1.3.6.1.4.1.3375.2.1.2.12.1 # sysTrunk
+  - 1.3.6.1.4.1.3375.2.1.2.12.2 # sysTrunkStat
+  # sysVlans
+  - 1.3.6.1.4.1.3375.2.1.2.13.1 # sysVlan
+  - 1.3.6.1.4.1.3375.2.1.2.13.2 # sysVlanMember
+  - 1.3.6.1.4.1.3375.2.1.2.13.6 # sysVlanStat
+  # CPU items?
+  - 1.3.6.1.4.1.3375.2.1.7.5 # sysMultiHostCpu which I believe is the CPU stuff for multi-core boxes (I.E. All of them.)
+  # No metrics defined yet.
+  - 1.3.6.1.4.1.3375.2.1.1.2.20 # sysGlobalHost
+  - 1.3.6.1.4.1.3375.2.1.1.2.21 # sysGlobalTmmStat
+  # Metrics configuration specified which snmp OIDs to actually create data points for
+  # and details about them (indexes, type, what to name the data point.)
+  metrics:
+  # sysGlobalStat
+  - name: sysStatMemoryTotal
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.1.44
+    type: counter
+  - name: sysStatMemoryUsed
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.1.45
+    type: counter
+  - name: sysStatMemoryTotalKb
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.1.143
+    type: counter
+  - name: sysStatMemoryUsedKb
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.1.144
+    type: counter
+  # sysMultiHost
+  - name: sysMultiHostHostId
+    oid: 1.3.6.1.4.1.3375.2.1.7.4.2.1.1
+    type: DisplayString
+  - name: sysMultiHostTotal
+    oid: 1.3.6.1.4.1.3375.2.1.7.4.2.1.2
+    type: counter
+    indexes:
+    - labelname: sysMultiHostHostId
+      type: DisplayString
+  - name: sysMultiHostUsed
+    oid: 1.3.6.1.4.1.3375.2.1.7.4.2.1.3
+    type: counter
+    indexes:
+    - labelname: sysMultiHostHostId
+      type: DisplayString
+  #
+  # sysGlobalHost
+  - name: sysGlobalHostMemTotal
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.2
+    type: counter
+  - name: sysGlobalHostMemUsed
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.3
+    type: counter
+  - name: sysGlobalHostCpuCount
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.4
+    type: counter
+  - name: sysGlobalHostActiveCpuCount
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.5
+    type: counter
+  - name: sysGlobalHostCpuUser
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.6
+    type: counter
+  - name: sysGlobalHostCpuNice
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.7
+    type: counter
+  - name: sysGlobalHostCpuSystem
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.8
+    type: counter
+  - name: sysGlobalHostCpuIdle
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.9
+    type: counter
+  - name: sysGlobalHostCpuIrq
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.10
+    type: counter
+  - name: sysGlobalHostCpuSoftirq
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.11
+    type: counter
+  - name: sysGlobalHostCpuIowait
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.12
+    type: counter
+  - name: sysGlobalHostCpuUsageRatio
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.13
+    type: counter
+  - name: sysGlobalHostCpuUser5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.14
+    type: counter
+  - name: sysGlobalHostCpuNice5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.15
+    type: counter
+  - name: sysGlobalHostCpuSystem5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.16
+    type: counter
+  - name: sysGlobalHostCpuIdle5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.17
+    type: counter
+  - name: sysGlobalHostCpuIrq5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.18
+    type: counter
+  - name: sysGlobalHostCpuSoftirq5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.19
+    type: counter
+  - name: sysGlobalHostCpuIowait5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.20
+    type: counter
+  - name: sysGlobalHostCpuUsageRatio5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.21
+    type: counter
+  - name: sysGlobalHostCpuUser1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.22
+    type: counter
+  - name: sysGlobalHostCpuNice1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.23
+    type: counter
+  - name: sysGlobalHostCpuSystem1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.24
+    type: counter
+  - name: sysGlobalHostCpuIdle1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.25
+    type: counter
+  - name: sysGlobalHostCpuIrq1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.26
+    type: counter
+  - name: sysGlobalHostCpuSoftirq1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.27
+    type: counter
+  - name: sysGlobalHostCpuIowait1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.28
+    type: counter
+  - name: sysGlobalHostCpuUsageRatio1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.29
+    type: counter
+  - name: sysGlobalHostCpuUser5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.30
+    type: counter
+  - name: sysGlobalHostCpuNice5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.31
+    type: counter
+  - name: sysGlobalHostCpuSystem5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.32
+    type: counter
+  - name: sysGlobalHostCpuIdle5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.33
+    type: counter
+  - name: sysGlobalHostCpuIrq5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.34
+    type: counter
+  - name: sysGlobalHostCpuSoftirq5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.35
+    type: counter
+  - name: sysGlobalHostCpuIowait5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.36
+    type: counter
+  - name: sysGlobalHostCpuUsageRatio5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.37
+    type: counter
+  - name: sysGlobalHostCpuStolen
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.38
+    type: counter
+  - name: sysGlobalHostCpuStolen5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.39
+    type: counter
+  - name: sysGlobalHostCpuStolen1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.40
+    type: counter
+  - name: sysGlobalHostCpuStolen5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.41
+    type: counter
+  - name: sysGlobalHostMemTotalKb
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.42
+    type: counter
+  - name: sysGlobalHostMemUsedKb
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.43
+    type: counter
+  - name: sysGlobalHostOtherMemoryTotal
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.44
+    type: counter
+  - name: sysGlobalHostOtherMemoryUsed
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.45
+    type: counter
+  - name: sysGlobalHostSwapTotal
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.46
+    type: counter
+  - name: sysGlobalHostSwapUsed
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.47
+    type: counter
+  # sysGlobalTmmStat
+  - name: sysGlobalTmmStatNpus
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.2
+    type: counter
+  - name: sysGlobalTmmStatClientPktsIn
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.3
+    type: counter
+  - name: sysGlobalTmmStatClientBytesIn
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.4
+    type: counter
+  - name: sysGlobalTmmStatClientPktsOut
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.5
+    type: counter
+  - name: sysGlobalTmmStatClientBytesOut
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.6
+    type: counter
+  - name: sysGlobalTmmStatClientMaxConns
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.7
+    type: counter
+  - name: sysGlobalTmmStatClientTotConns
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.8
+    type: counter
+  - name: sysGlobalTmmStatClientCurConns
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.9
+    type: counter
+  - name: sysGlobalTmmStatServerPktsIn
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.10
+    type: counter
+  - name: sysGlobalTmmStatServerBytesIn
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.11
+    type: counter
+  - name: sysGlobalTmmStatServerPktsOut
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.12
+    type: counter
+  - name: sysGlobalTmmStatServerBytesOut
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.13
+    type: counter
+  - name: sysGlobalTmmStatServerMaxConns
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.14
+    type: counter
+  - name: sysGlobalTmmStatServerTotConns
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.15
+    type: counter
+  - name: sysGlobalTmmStatServerCurConns
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.16
+    type: counter
+  - name: sysGlobalTmmStatMaintenanceModeDeny
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.17
+    type: counter
+  - name: sysGlobalTmmStatMaxConnVirtualAddrDeny
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.18
+    type: counter
+  - name: sysGlobalTmmStatMaxConnVirtualPathDeny
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.19
+    type: counter
+  - name: sysGlobalTmmStatVirtualServerNonSynDeny
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.20
+    type: counter
+  - name: sysGlobalTmmStatNoHandlerDeny
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.21
+    type: counter
+  - name: sysGlobalTmmStatLicenseDeny
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.22
+    type: counter
+  - name: sysGlobalTmmStatCmpConnRedirected
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.23
+    type: counter
+  - name: sysGlobalTmmStatConnectionMemoryErrors
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.24
+    type: counter
+  - name: sysGlobalTmmStatTmTotalCycles
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.25
+    type: counter
+  - name: sysGlobalTmmStatTmIdleCycles
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.26
+    type: counter
+  - name: sysGlobalTmmStatTmSleepCycles
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.27
+    type: counter
+  - name: sysGlobalTmmStatMemoryTotal
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.28
+    type: counter
+  - name: sysGlobalTmmStatMemoryUsed
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.29
+    type: counter
+  - name: sysGlobalTmmStatDroppedPackets
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.30
+    type: counter
+  - name: sysGlobalTmmStatIncomingPacketErrors
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.31
+    type: counter
+  - name: sysGlobalTmmStatOutgoingPacketErrors
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.32
+    type: counter
+  - name: sysGlobalTmmStatHttpRequests
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.33
+    type: counter
+  - name: sysGlobalTmmStatTmUsageRatio5s
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.34
+    type: counter
+  - name: sysGlobalTmmStatTmUsageRatio1m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.35
+    type: counter
+  - name: sysGlobalTmmStatTmUsageRatio5m
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.36
+    type: counter
+  - name: sysGlobalTmmStatMemoryTotalKb
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.37
+    type: counter
+  - name: sysGlobalTmmStatMemoryUsedKb
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.21.38
+    type: counter
+  # TMM Memory stuff
+  # sysStatMemory
+  - name: sysTmmStatTmmId
+    oid: 1.3.6.1.4.1.3375.2.1.8.2.3.1.1
+    type: DisplayString
+  - name: sysTmmStatMemoryTotal
+    oid: 1.3.6.1.4.1.3375.2.1.8.2.3.1.31
+    type: counter
+    indexes:
+    - labelname: sysTmmStatTmmId
+      type: DisplayString
+    lookups:
+    - labels:
+      - sysTmmStatTmmId
+      labelname: sysTmmStatTmmId
+      oid: 1.3.6.1.4.1.3375.2.1.8.2.3.1.1
+      type: DisplayString
+  - name: sysTmmStatMemoryUsed
+    oid: 1.3.6.1.4.1.3375.2.1.8.2.3.1.32
+    type: counter
+    indexes:
+    - labelname: sysTmmStatTmmId
+      type: DisplayString
+    lookups:
+    - labels:
+      - sysTmmStatTmmId
+      labelname: sysTmmStatTmmId
+      oid: 1.3.6.1.4.1.3375.2.1.8.2.3.1.1
+      type: DisplayString
+  - name: sysTmmStatMemoryTotalKb
+    oid: 1.3.6.1.4.1.3375.2.1.8.2.3.1.41
+    type: counter
+    indexes:
+    - labelname: sysTmmStatTmmId
+      type: DisplayString
+  - name: sysTmmStatMemoryUsedKb
+    oid: 1.3.6.1.4.1.3375.2.1.8.2.3.1.42
+    type: counter
+    indexes:
+    - labelname: sysTmmStatTmmId
+      type: DisplayString
+  # # CPU Stuff
+  - name: sysMultiHostCpuHostId
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.1
+    type: DisplayString
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIndex
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.2
+    type: gauge
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  ############################################
+  # Actual CPU Counters
+  # sysMultiHostCpu
+  - name: sysMultiHostCpuNumber
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.1
+    type: gauge
+  - name: sysMultiHostCpuHostId
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.1
+    type: DisplayString
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIndex
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.2
+    type: gauge
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuId
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.3
+    type: gauge
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuUser
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.4
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuNice
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.5
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSystem
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.6
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIdle
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.7
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIrq
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.8
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSoftirq
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.9
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIowait
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.10
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuUsageRatio
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.11
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuUser5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.12
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuNice5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.13
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSystem5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.14
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIdle5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.15
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIrq5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.16
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSoftirq5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.17
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIowait5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.18
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuUsageRatio5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.19
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuUser1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.20
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuNice1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.21
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSystem1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.22
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIdle1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.23
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIrq1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.24
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSoftirq1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.25
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIowait1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.26
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuUsageRatio1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.27
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuUser5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.28
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuNice5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.29
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSystem5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.30
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIdle5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.31
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIrq5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.32
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSoftirq5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.33
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuIowait5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.34
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuUsageRatio5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.35
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuStolen
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.36
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuStolen5s
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.37
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuStolen1m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.38
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuStolen5m
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.39
+    type: counter
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+  - name: sysMultiHostCpuSlotId
+    oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.40
+    type: gauge
+    indexes:
+    - labelname: sysMultiHostCpuHostId
+      type: DisplayString
+    - labelname: sysMultiHostCpuIndex
+      type: gauge
+
+
+
+  # - name: sysMultiHostCpuId
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.3
+  #   type: gauge
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuUser
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.4
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuNice
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.5
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuSystem
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.6
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuIdle
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.7
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuIrq
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.8
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuSoftirq
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.9
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuIowait
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.10
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuStolen
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.36
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  # - name: sysMultiHostCpuSlotId
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.2.1.40
+  #   type: counter
+  #   indexes:
+  #   - labelname: sysMultiHostCpuHostId
+  #     type: DisplayString
+  #   - labelname: sysMultiHostCpuIndex
+  #     type: gauge
+  #   #Descr: If this is an appliance, the slot is 0. If this is in a cluster, the slot is the position in the cluster (1-based)
+  # - name: sysMultiHostCpuNumber
+  #   oid: 1.3.6.1.4.1.3375.2.1.7.5.1.0
+  #   type: gauge
+
+
+  ##############################################
+  # sysGlobalHost CPU numbers
+  - name: sysGlobalHostCpuCount
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.4
+    type: counter
+  - name: sysGlobalHostActiveCpuCount
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.5
+    type: counter
+  - name: sysGlobalHostCpuUser
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.6
+    type: counter
+  - name: sysGlobalHostCpuNice
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.7
+    type: counter
+  - name: sysGlobalHostCpuSystem
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.8
+    type: counter
+  - name: sysGlobalHostCpuIdle
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.9
+    type: counter
+  - name: sysGlobalHostCpuIrq
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.10
+    type: counter
+  - name: sysGlobalHostCpuSoftirq
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.11
+    type: counter
+  - name: sysGlobalHostCpuIowait
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.12
+    type: counter
+  - name: sysGlobalHostCpuStolen
+    oid: 1.3.6.1.4.1.3375.2.1.1.2.20.38
+    type: counter
+  # sysCMSyncStatus
+  - name: sysCmSyncStatusId
+    oid: 1.3.6.1.4.1.3375.2.1.14.1.1
+    type: gauge
+  - name: sysCmSyncStatusStatus
+    oid: 1.3.6.1.4.1.3375.2.1.14.1.2
+    type: DisplayString
+  - name: sysCmSyncStatusColor
+    oid: 1.3.6.1.4.1.3375.2.1.14.1.3
+    type: gauge
+  - name: sysCmSyncStatusSummary
+    oid: 1.3.6.1.4.1.3375.2.1.14.1.4
+    type: DisplayString
+  # sysCMFailoverStatus
+  - name: sysCmFailoverStatusId
+    oid: 1.3.6.1.4.1.3375.2.1.14.3.1.0
+    type: counter
+  - name: sysCmFailoverStatusStatus
+    oid: 1.3.6.1.4.1.3375.2.1.14.3.2.0
+    type: DisplayString
+  - name: sysCmFailoverStatusColor
+    oid: 1.3.6.1.4.1.3375.2.1.14.3.3.0
+    type: counter
+    #  INTEGER {green(0), yellow(1), red(2), blue(3), gray(4), black(5)}
+  - name: sysCmFailoverStatusSummary
+    oid: 1.3.6.1.4.1.3375.2.1.14.3.4.0
+    type: DisplayString
+  ####################################################
+  # sysVlans
+  # includes sysVlan, sysVlanMember and sysVlanStat
+  ####################################################
+  - name: sysVlanNumber
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.1
+    type: gauge
+  - name: sysVlanVname
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.1
+    type: DisplayString
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanId
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.2
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanSpanningTree
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.3
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanMacMasquerade
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.4
+    type: PhysAddress48
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanMacTrue
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.5
+    type: PhysAddress48
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanSourceCheck
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.6
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanFailsafeEnabled
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.7
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanMtu
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.8
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanFailsafeTimeout
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.9
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanFailsafeAction
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.10
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanMirrorHashPortEnable
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.11
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanLearnMode
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.1.2.1.12
+    type: gauge
+    indexes:
+    - labelname: sysVlanVname
+      type: DisplayString
+  - name: sysVlanMemberNumber
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.2.1
+    type: gauge
+  # sysVlanMember
+  - name: sysVlanMemberVmname
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.2.2.1.1
+    type: DisplayString
+    indexes:
+    - labelname: sysVlanMemberParentVname
+      type: DisplayString
+    - labelname: sysVlanMemberVmname
+      type: DisplayString
+  - name: sysVlanMemberParentVname
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.2.2.1.2
+    type: DisplayString
+    indexes:
+    - labelname: sysVlanMemberParentVname
+      type: DisplayString
+    - labelname: sysVlanMemberVmname
+      type: DisplayString
+  - name: sysVlanMemberTagged
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.2.2.1.3
+    type: gauge
+    indexes:
+    - labelname: sysVlanMemberParentVname
+      type: DisplayString
+    - labelname: sysVlanMemberVmname
+      type: DisplayString
+  - name: sysVlanMemberType
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.2.2.1.4
+    type: gauge
+    indexes:
+    - labelname: sysVlanMemberParentVname
+      type: DisplayString
+    - labelname: sysVlanMemberVmname
+      type: DisplayString
+  # sysVlanStat
+  - name: sysVlanStatNumber
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.1
+    type: gauge
+  - name: sysVlanStatVlanName
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.1
+    type: DisplayString
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatPktsIn
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.2
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatBytesIn
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.3
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatPktsOut
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.4
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatBytesOut
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.5
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatMcastIn
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.6
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatMcastOut
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.7
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatErrorsIn
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.8
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatErrorsOut
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.9
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatDropsIn
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.10
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatDropsOut
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.11
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanStatCollisions
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.6.2.1.12
+    type: counter
+    indexes:
+    - labelname: sysVlanStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatNumber
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.1
+    type: gauge
+  - name: sysVlanxStatVlanName
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.1
+    type: DisplayString
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatInMulticastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.2
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatInBroadcastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.3
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatOutMulticastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.4
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatOutBroadcastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.5
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHcInOctets
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.6
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHcInUcastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.7
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHcInMulticastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.8
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHcInBroadcastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.9
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHcOutOctets
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.10
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHcOutUcastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.11
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHcOutMulticastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.12
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHcOutBroadcastPkts
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.13
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatHighSpeed
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.14
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatConnectorPresent
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.15
+    type: gauge
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysVlanxStatCounterDiscontinuityTime
+    oid: 1.3.6.1.4.1.3375.2.1.2.13.7.2.1.16
+    type: counter
+    indexes:
+    - labelname: sysVlanxStatVlanName
+      type: DisplayString
+  - name: sysSysDeviceNumber
+    oid: 1.3.6.1.4.1.3375.2.1.2.14.1.1
+    type: gauge
+  ###########################################
+  # sysInterfaces
+  # sysInterface
+  - name: sysInterfaceNumber
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.1
+    type: gauge
+  - name: sysInterfaceName
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.1
+    type: DisplayString
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceMediaMaxSpeed
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.2
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceMediaMaxDuplex
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.3
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceMediaActiveSpeed
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.4
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceMediaActiveDuplex
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.5
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceMacAddr
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.6
+    type: PhysAddress48
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceMtu
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.7
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceEnabled
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.8
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceLearnMode
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.9
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceFlowCtrlReq
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.10
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceStpLink
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.11
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceStpEdge
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.12
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceStpEdgeActive
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.13
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceStpAuto
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.14
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceStpEnable
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.15
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceStpReset
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.16
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceStatus
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.17
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceComboPort
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.18
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfacePreferSfp
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.19
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfaceSfpMedia
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.20
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
+  - name: sysInterfacePhyMaster
+    oid: 1.3.6.1.4.1.3375.2.1.2.4.1.2.1.21
+    type: gauge
+    indexes:
+    - labelname: sysInterfaceName
+      type: DisplayString
